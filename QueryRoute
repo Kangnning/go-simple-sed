@@ -1,0 +1,12 @@
+package sed
+
+import "fmt"
+
+ next line
+This is inerst before test
+ next line
+
+func testMain() {
+	test = "dsad"
+	fmt.Println(test)
+}

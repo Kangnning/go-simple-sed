@@ -7,10 +7,12 @@ import (
 	"io"
 	"os"
 	"regexp"
+
+	"github.com/Kangnning/go-simple-sed/config"
 )
 
 type Sed struct {
-	conf *Config
+	conf *config.Config
 	reg  *regexp.Regexp
 }
 
@@ -18,14 +20,14 @@ func New() *Sed {
 	return &Sed{}
 }
 
-func (s *Sed) Run(conf Config) error {
+func (s *Sed) Run(conf *config.Config) error {
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Printf("Run error: %v\n", r)
 		}
 	}()
 
-	s.conf = &conf
+	s.conf = conf
 	err := s.checkConf()
 	if err != nil {
 		return err
@@ -65,7 +67,7 @@ func (s *Sed) run() error {
 	// defer tmpFile.Close()
 
 	// 打开原始文件
-	fmt.Println(s.conf.FileName)
+	// fmt.Println(s.conf.FileName)
 	origFile, err := os.Open(s.conf.FileName)
 	if err != nil {
 		return err
@@ -90,20 +92,20 @@ func (s *Sed) run() error {
 
 		// 如果尚未插入并且当前行包含模式，则插入字符串
 		if !inserted && s.reg.MatchString(line) {
-			switch s.conf.Opt {
-			case InsertBefore:
+			switch s.conf.Act {
+			case config.InsertBefore:
 				_, err := writer.WriteString(s.conf.DesString + "\n")
 				if err != nil {
 					return err
 				}
 				inserted = true
-			case Replace:
+			case config.Replace:
 				_, err := writer.WriteString(s.conf.DesString + "\n")
 				if err != nil {
 					return err
 				}
 				fallthrough
-			case Delete:
+			case config.Delete:
 				inserted = true
 				continue
 			}
@@ -115,7 +117,7 @@ func (s *Sed) run() error {
 		}
 
 		// 如果尚未插入并且当前行包含模式，则插入字符串
-		if !inserted && s.conf.Opt == InsertAfter && s.reg.MatchString(line) {
+		if !inserted && s.conf.Act == config.InsertAfter && s.reg.MatchString(line) {
 			_, err := writer.WriteString(s.conf.DesString + "\n")
 			if err != nil {
 				return err
